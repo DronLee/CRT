@@ -3,6 +3,7 @@ using System.ServiceModel.Activation;
 using System.ServiceModel;
 using System;
 using PngProcessorService.Contracts;
+using PngProcessorService.Models;
 
 namespace PngProcessorService
 {
@@ -18,7 +19,7 @@ namespace PngProcessorService
         public Service()
         {
             var configuration = WebConfigurationManager.OpenWebConfiguration("~/");
-            _fileProcessor = new PngFileProcessor(configuration.AppSettings.Settings["WorkDirectory"].Value,
+            _fileProcessor = new PngFileProcessor(new PngFileFactory(configuration.AppSettings.Settings["WorkDirectory"].Value),
                 short.Parse(configuration.AppSettings.Settings["ProcessPoolSize"].Value));
         }
 

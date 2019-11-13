@@ -6,25 +6,25 @@ namespace PngProcessorService
 {
     internal class PngFileProcessor
     {
-        private readonly string _workDirectory;
+        private readonly IFileFactory _fileFactory;
         private readonly short _processPoolSize;
-        private readonly Dictionary<string, PngFile> _pngFiles;
+        private readonly Dictionary<string, IFile> _pngFiles;
 
-        private readonly List<PngFile> processFilesMQ;
+        private readonly List<IFile> processFilesMQ;
         private object processMQLocker = new object();
         private short _processingFilesCount;
 
         /// <summary>
         /// Консруктор.
         /// </summary>
-        /// <param name="workDirectory">Рабочая директория, в которую будут сохраняться файлы.</param>
+        /// <param name="fileFactory">Фабрика создания моделей файлов.</param>
         /// <param name="processPoolSize">Разрешённый размер пула обрабатываемых файлов. Если в обработку поступает больше файлов, они становятся в очередь.</param>
-        internal PngFileProcessor(string workDirectory, short processPoolSize)
+        internal PngFileProcessor(IFileFactory fileFactory, short processPoolSize)
         {
-            _workDirectory = workDirectory;
+            _fileFactory = fileFactory;
             _processPoolSize = processPoolSize;
-            _pngFiles = new Dictionary<string, PngFile>();
-            processFilesMQ = new List<PngFile>();
+            _pngFiles = new Dictionary<string, IFile>();
+            processFilesMQ = new List<IFile>();
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace PngProcessorService
         /// <returns>Идентификатор, присвоенный файлу.</returns>
         internal string AddFile(byte[] contentFile)
         {
-            var pngFile = new PngFile(_workDirectory, contentFile);
+            var pngFile = _fileFactory.CreateFile(contentFile);
             pngFile.ProcessedEvent += ProcessingStopped;
             _pngFiles.Add(pngFile.Id, pngFile);
             return pngFile.Id;
@@ -85,7 +85,7 @@ namespace PngProcessorService
         /// </summary>
         /// <param name="fileId">Идентификатор файла.</param>
         /// <returns>Модель файла.</returns>
-        internal PngFile GetPngFile(string fileId)
+        internal IFile GetPngFile(string fileId)
         {
             if (!_pngFiles.ContainsKey(fileId))
                 throw new KeyNotFoundException();
