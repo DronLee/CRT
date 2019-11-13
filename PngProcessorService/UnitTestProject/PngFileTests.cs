@@ -2,6 +2,7 @@
 using PngProcessorService;
 using PngProcessorService.Models;
 using System;
+using System.IO;
 
 namespace UnitTestProject
 {
@@ -20,6 +21,7 @@ namespace UnitTestProject
 
                 Assert.IsFalse(string.IsNullOrEmpty(pngFile.Id));
                 Assert.AreEqual(0, pngFile.Progress);
+                Assert.IsTrue(File.Exists(Path.Combine(testDirectory.DirectoryPath, pngFile.Id)));
             }
         }
 
