@@ -1,8 +1,10 @@
 ﻿using ImageProcessor;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
+[assembly: InternalsVisibleTo("UnitTestProject")]
 namespace PngProcessorService.Models
 {
     /// <summary>
@@ -46,7 +48,10 @@ namespace PngProcessorService.Models
             lock (processLocker)
             {
                 if (_processThread != null)
-                    throw new ProcessIsAlreadyRunningException();
+                    if (_processThread.ThreadState == ThreadState.Stopped)
+                        throw new FileIsAlreadyProcessedException();
+                    else
+                        throw new ProcessIsAlreadyRunningException();
 
                 _processThread = new Thread(() =>
                 {
@@ -65,13 +70,15 @@ namespace PngProcessorService.Models
         /// </summary>
         internal void CancelProcess()
         {
-            lock(processLocker)
+            lock (processLocker)
             {
                 if (_processThread == null)
                     throw new ProcessIsNotRunningException();
-
-                _processThread.Abort();
-                _processThread = null;
+                else if (_processThread.ThreadState != ThreadState.Stopped)
+                {
+                    _processThread.Abort();
+                    _processThread = null;
+                }
             }
         }
     }
