@@ -10,7 +10,7 @@ namespace PngProcessorService.Models
     /// <summary>
     /// Класс описывает поступающий в обработку файл.
     /// </summary>
-    internal class PngFile
+    internal class PngFile : IFile
     {
         private readonly string _filePath;
 
@@ -22,7 +22,7 @@ namespace PngProcessorService.Models
         /// </summary>
         /// <param name="workDirectory">Рабочая директория, в которой будет сохранён поступивший файл.</param>
         /// <param name="content">Байты поступившего файла.</param>
-        internal PngFile(string workDirectory, byte[] content)
+        public PngFile(string workDirectory, byte[] content)
         {
             Id = Guid.NewGuid().ToString();
             _filePath = Path.Combine(workDirectory, Id);
@@ -33,22 +33,22 @@ namespace PngProcessorService.Models
         /// <summary>
         /// Идентификатор, присвоенный файлу. 
         /// </summary>
-        internal string Id { get; }
+        public string Id { get; }
 
         /// <summary>
         /// Текущее значение прогресса обработки файла.
         /// </summary>
-        internal double Progress { get; private set; }
+        public double Progress { get; private set; }
 
         /// <summary>
         /// Событие завершения обработки файла.
         /// </summary>
-        internal event Action ProcessedEvent;
+        public event Action ProcessedEvent;
 
         /// <summary>
         /// Начать обработку файла.
         /// </summary>
-        internal void Process()
+        public void Process()
         {
             lock (processLocker)
             {
@@ -74,7 +74,7 @@ namespace PngProcessorService.Models
         /// <summary>
         /// Отменить обработку файла.
         /// </summary>
-        internal void CancelProcess()
+        public void CancelProcess()
         {
             lock (processLocker)
             {
