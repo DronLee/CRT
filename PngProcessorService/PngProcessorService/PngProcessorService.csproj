@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="Contracts\FileRequest.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="PngFileProcessor.cs" />
     <Compile Include="Models\PngFile.cs" />
     <Compile Include="Service.svc.cs">
       <DependentUpon>Service.svc</DependentUpon>
