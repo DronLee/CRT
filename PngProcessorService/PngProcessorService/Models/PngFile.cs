@@ -41,6 +41,11 @@ namespace PngProcessorService.Models
         internal double Progress { get; private set; }
 
         /// <summary>
+        /// Событие завершения обработки файла.
+        /// </summary>
+        internal event Action ProcessedEvent;
+
+        /// <summary>
         /// Начать обработку файла.
         /// </summary>
         internal void Process()
@@ -60,6 +65,7 @@ namespace PngProcessorService.Models
                         pngProcessor.ProgressChanged += (double progress) => { Progress = progress; };
                         pngProcessor.Process(_filePath);
                     }
+                    ProcessedEvent?.Invoke();
                 });
                 _processThread.Start();
             }
