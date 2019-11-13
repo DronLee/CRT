@@ -4,6 +4,8 @@ using PngProcessorService.Models;
 using System.Web.Configuration;
 using System.ServiceModel.Activation;
 using System.ServiceModel;
+using System;
+using PngProcessorService.Contracts;
 
 namespace PngProcessorService
 {
@@ -29,9 +31,9 @@ namespace PngProcessorService
         /// </summary>
         /// <param name="content">Байты файла.</param>
         /// <returns>Присвоенный файлу идентификатор.</returns>
-        public string SendFile(byte[] content)
+        public string SendFile(FileRequest file)
         {
-            var pngFile = new PngFile(_workDirectory, content);
+            var pngFile = new PngFile(_workDirectory, Convert.FromBase64String(file.ContentBase64));
             _pngFiles.Add(pngFile);
             return pngFile.Id;
         }

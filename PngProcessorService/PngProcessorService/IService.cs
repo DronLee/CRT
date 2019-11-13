@@ -1,4 +1,5 @@
-﻿using System.ServiceModel;
+﻿using PngProcessorService.Contracts;
+using System.ServiceModel;
 using System.ServiceModel.Web;
 
 namespace PngProcessorService
@@ -16,7 +17,7 @@ namespace PngProcessorService
         /// <returns>Присвоенный файлу идентификатор.</returns>
         [OperationContract]
         [WebInvoke(UriTemplate = "/send", Method = "POST")]
-        string SendFile(byte[] content);
+        string SendFile(FileRequest file);
 
         /// <summary>
         /// Начать обработку файла.
