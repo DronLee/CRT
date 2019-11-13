@@ -78,6 +78,7 @@ namespace PngProcessorService.Models
                 {
                     _processThread.Abort();
                     _processThread = null;
+                    Progress = 0;
                 }
             }
         }
