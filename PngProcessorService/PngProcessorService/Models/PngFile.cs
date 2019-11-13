@@ -60,12 +60,18 @@ namespace PngProcessorService.Models
 
                 _processThread = new Thread(() =>
                 {
-                    using (var pngProcessor = new PngProcessor())
+                    try
                     {
-                        pngProcessor.ProgressChanged += (double progress) => { Progress = progress; };
-                        pngProcessor.Process(_filePath);
+                        using (var pngProcessor = new PngProcessor())
+                        {
+                            pngProcessor.ProgressChanged += (double progress) => { Progress = progress; };
+                            pngProcessor.Process(_filePath);
+                        }
                     }
-                    ProcessedEvent?.Invoke();
+                    finally
+                    {
+                        ProcessedEvent?.Invoke();
+                    }
                 });
                 _processThread.Start();
             }
