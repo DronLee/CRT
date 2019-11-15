@@ -41,9 +41,9 @@ namespace PngProcessorService.Models
         public double Progress { get; private set; }
 
         /// <summary>
-        /// Событие завершения обработки файла.
+        /// Событие завершения обработки файла. Передаёт файл, обработка которого завершена.
         /// </summary>
-        public event Action ProcessedEvent;
+        public event Action<IFile> ProcessedEvent;
 
         /// <summary>
         /// Начать обработку файла.
@@ -70,7 +70,7 @@ namespace PngProcessorService.Models
                     }
                     finally
                     {
-                        ProcessedEvent?.Invoke();
+                        ProcessedEvent?.Invoke(this);
                     }
                 });
                 _processThread.Start();

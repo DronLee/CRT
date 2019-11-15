@@ -9,6 +9,9 @@ namespace UnitTestProject
     [TestClass]
     public class PngFileProcessorTests
     {
+        /// <summary>
+        /// Тестирование переполнения пула обрабатываемых файлов.
+        /// </summary>
         [TestMethod]
         public void ProcessFile_PoolOverflow()
         {
@@ -28,6 +31,29 @@ namespace UnitTestProject
             Assert.IsFalse(TestFile.ProcessFilesId.Contains(fileId3));
         }
 
+        /// <summary>
+        /// Тестирование отмены обработки и взятие при этом в обработку следующего файла из пула ожиданий.
+        /// </summary>
+        [TestMethod]
+        public void CancelProcess_NextFileToProcess()
+        {
+            var pngFileProcessor = new PngFileProcessor(new TestFileFactory(), 2);
+
+            var fileId1 = pngFileProcessor.AddFile(null);
+            var fileId2 = pngFileProcessor.AddFile(null);
+            var fileId3 = pngFileProcessor.AddFile(null);
+
+            pngFileProcessor.ProcessFile(fileId1);
+            pngFileProcessor.ProcessFile(fileId2);
+            pngFileProcessor.ProcessFile(fileId3);
+
+            pngFileProcessor.CancelProcess(fileId2);
+
+            Assert.IsTrue(TestFile.CanceledProcessFilesId.Contains(fileId2));
+            Assert.IsTrue(TestFile.ProcessFilesId.Contains(fileId3), 
+                "После отмены обработки второго файла, в обработку должен поступить третий.");
+        }
+
         private class TestFileFactory : IFileFactory
         {
             public IFile CreateFile(byte[] content)
@@ -39,6 +65,7 @@ namespace UnitTestProject
         private class TestFile : IFile
         {
             public static readonly List<string> ProcessFilesId = new List<string>();
+            public static readonly List<string> CanceledProcessFilesId = new List<string>();
 
             public TestFile()
             {
@@ -55,11 +82,11 @@ namespace UnitTestProject
                 }
             }
 
-            public event Action ProcessedEvent;
+            public event Action<IFile> ProcessedEvent;
 
             public void CancelProcess()
             {
-                throw new NotImplementedException();
+                CanceledProcessFilesId.Add(Id);
             }
 
             public void Process()

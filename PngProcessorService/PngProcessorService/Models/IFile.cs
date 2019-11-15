@@ -18,9 +18,9 @@ namespace PngProcessorService.Models
         double Progress { get; }
 
         /// <summary>
-        /// Событие завершения обработки файла.
+        /// Событие завершения обработки файла. Передаёт файл, обработка которого завершена.
         /// </summary>
-        event Action ProcessedEvent;
+        event Action<IFile> ProcessedEvent;
 
         /// <summary>
         /// Начать обработку файла.
