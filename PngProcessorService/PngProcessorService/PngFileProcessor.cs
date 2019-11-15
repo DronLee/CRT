@@ -35,7 +35,6 @@ namespace PngProcessorService
         internal string AddFile(byte[] contentFile)
         {
             var pngFile = _fileFactory.CreateFile(contentFile);
-            pngFile.ProcessedEvent += ProcessingStopped;
             _pngFiles.Add(pngFile.Id, pngFile);
             return pngFile.Id;
         }
@@ -47,13 +46,13 @@ namespace PngProcessorService
         internal void ProcessFile(string fileId)
         {
             var pngFile = GetPngFile(fileId);
-
+            
             lock (processMQLocker)
             {
                 if (_processingFilesCount < _processPoolSize)
                 {
                     _processingFilesCount++;
-                    pngFile.Process();
+                    ProcessFile(pngFile);
                 }
                 else
                     processFilesMQ.Add(pngFile);
@@ -76,7 +75,7 @@ namespace PngProcessorService
             if (!removedFromMQ)
             {
                 pngFile.CancelProcess();
-                ProcessingStopped();
+                ProcessingStopped(pngFile);
             }
         }
 
@@ -92,17 +91,27 @@ namespace PngProcessorService
             return _pngFiles[fileId];
         }
 
-        private void ProcessingStopped()
+        private void ProcessingStopped(IFile file)
         {
+            file.ProcessedEvent -= ProcessingStopped; // Отписываемся, так как если выполняется этот метот, то обработки файла ждать не стоит.
+
             lock (processMQLocker)
                 if (processFilesMQ.Count > 0)
                 {
                     var processFile = processFilesMQ.First();
-                    processFile.Process();
+                    ProcessFile(processFile);
                     processFilesMQ.Remove(processFile);
                 }
                 else
                     _processingFilesCount--;
+
+        }
+
+        private void ProcessFile(IFile file)
+        {
+            file.ProcessedEvent += ProcessingStopped; // Перед обработкой подписываемя на событие в ожидании завершения.
+
+            file.Process();
         }
     }
 }
