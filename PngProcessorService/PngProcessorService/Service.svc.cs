@@ -14,12 +14,12 @@ namespace PngProcessorService
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class Service : IService
     {
-        private readonly PngFileProcessor _fileProcessor;
+        private readonly FileProcessor _fileProcessor;
 
         public Service()
         {
             var configuration = WebConfigurationManager.OpenWebConfiguration("~/");
-            _fileProcessor = new PngFileProcessor(new PngFileFactory(configuration.AppSettings.Settings["WorkDirectory"].Value),
+            _fileProcessor = new FileProcessor(new PngFileFactory(configuration.AppSettings.Settings["WorkDirectory"].Value),
                 short.Parse(configuration.AppSettings.Settings["ProcessPoolSize"].Value));
         }
 
@@ -49,7 +49,7 @@ namespace PngProcessorService
         /// <returns>Текущее значение прогресса обработки файла.</returns>
         public double GetProgress(string fileId)
         {
-            return _fileProcessor.GetPngFile(fileId).Progress;
+            return _fileProcessor.GetFile(fileId).Progress;
         }
 
         /// <summary>

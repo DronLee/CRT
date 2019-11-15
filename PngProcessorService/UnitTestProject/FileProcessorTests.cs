@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace UnitTestProject
 {
     [TestClass]
-    public class PngFileProcessorTests
+    public class FileProcessorTests
     {
         /// <summary>
         /// Тестирование переполнения пула обрабатываемых файлов.
@@ -15,15 +15,15 @@ namespace UnitTestProject
         [TestMethod]
         public void ProcessFile_PoolOverflow()
         {
-            var pngFileProcessor = new PngFileProcessor(new TestFileFactory(), 2);
+            var fileProcessor = new FileProcessor(new TestFileFactory(), 2);
 
-            var fileId1 = pngFileProcessor.AddFile(null);
-            var fileId2 = pngFileProcessor.AddFile(null);
-            var fileId3 = pngFileProcessor.AddFile(null);
+            var fileId1 = fileProcessor.AddFile(null);
+            var fileId2 = fileProcessor.AddFile(null);
+            var fileId3 = fileProcessor.AddFile(null);
 
-            pngFileProcessor.ProcessFile(fileId1);
-            pngFileProcessor.ProcessFile(fileId2);
-            pngFileProcessor.ProcessFile(fileId3);
+            fileProcessor.ProcessFile(fileId1);
+            fileProcessor.ProcessFile(fileId2);
+            fileProcessor.ProcessFile(fileId3);
 
             // Первые 2 файла должны обрабатываться, а третий зависнуть в очереди, так как пул всего на 2.
             Assert.IsTrue(TestFile.ProcessFilesId.Contains(fileId1));
@@ -37,17 +37,17 @@ namespace UnitTestProject
         [TestMethod]
         public void CancelProcess_NextFileToProcess()
         {
-            var pngFileProcessor = new PngFileProcessor(new TestFileFactory(), 2);
+            var fileProcessor = new FileProcessor(new TestFileFactory(), 2);
 
-            var fileId1 = pngFileProcessor.AddFile(null);
-            var fileId2 = pngFileProcessor.AddFile(null);
-            var fileId3 = pngFileProcessor.AddFile(null);
+            var fileId1 = fileProcessor.AddFile(null);
+            var fileId2 = fileProcessor.AddFile(null);
+            var fileId3 = fileProcessor.AddFile(null);
 
-            pngFileProcessor.ProcessFile(fileId1);
-            pngFileProcessor.ProcessFile(fileId2);
-            pngFileProcessor.ProcessFile(fileId3);
+            fileProcessor.ProcessFile(fileId1);
+            fileProcessor.ProcessFile(fileId2);
+            fileProcessor.ProcessFile(fileId3);
 
-            pngFileProcessor.CancelProcess(fileId2);
+            fileProcessor.CancelProcess(fileId2);
 
             Assert.IsTrue(TestFile.CanceledProcessFilesId.Contains(fileId2));
             Assert.IsTrue(TestFile.ProcessFilesId.Contains(fileId3), 

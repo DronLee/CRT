@@ -80,7 +80,7 @@
     <Compile Include="Models\PngFileFactory.cs" />
     <Compile Include="Models\IFile.cs" />
     <Compile Include="Models\IFileFactory.cs" />
-    <Compile Include="PngFileProcessor.cs" />
+    <Compile Include="FileProcessor.cs" />
     <Compile Include="Models\PngFile.cs" />
     <Compile Include="Service.svc.cs">
       <DependentUpon>Service.svc</DependentUpon>

@@ -4,26 +4,47 @@ using System.Linq;
 
 namespace PngProcessorService
 {
-    internal class PngFileProcessor
+    /// <summary>
+    /// Модель обработчика файлов.
+    /// </summary>
+    internal class FileProcessor
     {
+        /// <summary>
+        /// Фабрика создания моделей файлов.
+        /// </summary>
         private readonly IFileFactory _fileFactory;
+        /// <summary>
+        /// Разрешённый размер пула обрабатываемых файлов.
+        /// </summary>
         private readonly short _processPoolSize;
-        private readonly Dictionary<string, IFile> _pngFiles;
+        /// <summary>
+        /// Словарь поступивших файлов, по их идентификаторам.
+        /// </summary>
+        private readonly Dictionary<string, IFile> _files;
 
+        /// <summary>
+        /// Очередь ожидающих обработки файлов. 
+        /// </summary>
         private readonly List<IFile> processFilesMQ;
+        /// <summary>
+        /// Объект для блокировки обращений к очереди.
+        /// </summary>
         private object processMQLocker = new object();
+        /// <summary>
+        /// Количество обрабатываемых в данный момент файлов.
+        /// </summary>
         private short _processingFilesCount;
 
         /// <summary>
-        /// Консруктор.
+        /// Конструктор.
         /// </summary>
         /// <param name="fileFactory">Фабрика создания моделей файлов.</param>
         /// <param name="processPoolSize">Разрешённый размер пула обрабатываемых файлов. Если в обработку поступает больше файлов, они становятся в очередь.</param>
-        internal PngFileProcessor(IFileFactory fileFactory, short processPoolSize)
+        internal FileProcessor(IFileFactory fileFactory, short processPoolSize)
         {
             _fileFactory = fileFactory;
             _processPoolSize = processPoolSize;
-            _pngFiles = new Dictionary<string, IFile>();
+            _files = new Dictionary<string, IFile>();
             processFilesMQ = new List<IFile>();
         }
 
@@ -34,9 +55,9 @@ namespace PngProcessorService
         /// <returns>Идентификатор, присвоенный файлу.</returns>
         internal string AddFile(byte[] contentFile)
         {
-            var pngFile = _fileFactory.CreateFile(contentFile);
-            _pngFiles.Add(pngFile.Id, pngFile);
-            return pngFile.Id;
+            var file = _fileFactory.CreateFile(contentFile);
+            _files.Add(file.Id, file);
+            return file.Id;
         }
 
         /// <summary>
@@ -45,17 +66,17 @@ namespace PngProcessorService
         /// <param name="fileId">Идентификатор файла.</param>
         internal void ProcessFile(string fileId)
         {
-            var pngFile = GetPngFile(fileId);
+            var file = GetFile(fileId);
             
             lock (processMQLocker)
             {
                 if (_processingFilesCount < _processPoolSize)
                 {
                     _processingFilesCount++;
-                    ProcessFile(pngFile);
+                    ProcessFile(file);
                 }
                 else
-                    processFilesMQ.Add(pngFile);
+                    processFilesMQ.Add(file);
             }
         }
 
@@ -65,17 +86,17 @@ namespace PngProcessorService
         /// <param name="fileId">Идентификатор файла.</param>
         internal void CancelProcess(string fileId)
         {
-            var pngFile = GetPngFile(fileId);
+            var file = GetFile(fileId);
 
             // Сначала проверим, может файл в очереди на обработку стоит, тогда достаточно его просто из очереди убрать.
             bool removedFromMQ = false;
             lock (processMQLocker)
-                removedFromMQ = processFilesMQ.Remove(pngFile);
+                removedFromMQ = processFilesMQ.Remove(file);
 
             if (!removedFromMQ)
             {
-                pngFile.CancelProcess();
-                ProcessingStopped(pngFile);
+                file.CancelProcess();
+                ProcessingStopped(file);
             }
         }
 
@@ -84,11 +105,11 @@ namespace PngProcessorService
         /// </summary>
         /// <param name="fileId">Идентификатор файла.</param>
         /// <returns>Модель файла.</returns>
-        internal IFile GetPngFile(string fileId)
+        internal IFile GetFile(string fileId)
         {
-            if (!_pngFiles.ContainsKey(fileId))
+            if (!_files.ContainsKey(fileId))
                 throw new KeyNotFoundException();
-            return _pngFiles[fileId];
+            return _files[fileId];
         }
 
         private void ProcessingStopped(IFile file)
@@ -109,7 +130,7 @@ namespace PngProcessorService
 
         private void ProcessFile(IFile file)
         {
-            file.ProcessedEvent += ProcessingStopped; // Перед обработкой подписываемя на событие в ожидании завершения.
+            file.ProcessedEvent += ProcessingStopped; // Перед обработкой подписываемся на событие в ожидании завершения.
 
             file.Process();
         }
